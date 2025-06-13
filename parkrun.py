@@ -142,7 +142,7 @@ def fetch_all_results(event_name):
     max_consecutive_failures = 3
 
     while True:
-        print(f"\rFetching week {week})", end="", flush=True)
+        print(f"\rFetching week {week}", end="", flush=True)
         week_data = fetch_weekly_result(week, json_dir, html_dir, event_name)
 
         if week_data:
