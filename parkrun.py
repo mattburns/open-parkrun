@@ -162,7 +162,7 @@ def fetch_all_results(event_name):
             # check if the event_date is within the last 7 days, if so, no point attempting to fetch any more
             event_date = datetime.strptime(week_data["date"], "%Y-%m-%d")
             if event_date > (datetime.now() - timedelta(days=7)):
-                print(f"\nEEE Completed! {fetched} weeks of results saved to {json_dir}")
+                print(f"\nCompleted! {fetched} weeks of results saved to {json_dir}")
                 break
         else:
             consecutive_failures += 1
