@@ -9,19 +9,6 @@ from pathlib import Path
 import argparse
 import random
 
-# Configuration
-EVENT_NAME = "eastville"  # Can be changed via environment variable
-BASE_URL = f"https://www.parkrun.org.uk/{EVENT_NAME}/results/weeklyresults/?runSeqNumber={{}}"
-
-# Directory structure
-DATA_DIR = Path("data")
-HTML_DIR = DATA_DIR / "html" / EVENT_NAME
-JSON_DIR = DATA_DIR / "json" / EVENT_NAME
-
-# Create directories if they don't exist
-HTML_DIR.mkdir(parents=True, exist_ok=True)
-JSON_DIR.mkdir(parents=True, exist_ok=True)
-
 # List of common browser user agents
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -64,12 +51,10 @@ def fetch_weekly_result(week_number, json_dir, html_dir, event_name):
         time.sleep(2)
         resp = session.get(url, headers=get_random_headers(event_name))
         if resp.status_code != 200:
-            print(f"\nWeek {week_number}: HTTP {resp.status_code} - {resp.url}")
             if resp.status_code == 404:
                 print("No more results available (404 Not Found)")
                 return None
             elif resp.status_code == 425:
-                print("No more results available (425 Too Early)")
                 return None
             else:
                 print(f"Error: {resp.status_code} - trying again in 300 seconds")
@@ -168,16 +153,15 @@ def fetch_all_results(event_name):
         else:
             consecutive_failures += 1
             if consecutive_failures >= max_consecutive_failures:
-                print(f"\nStopping after {max_consecutive_failures} consecutive failures")
                 break
-            week += 1
 
     print(f"\nCompleted! {fetched} weeks of results saved to {json_dir}")
     return all_results
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fetch and save parkrun results as JSON files.")
-    parser.add_argument("event", help="The parkrun event name (e.g. eastville, bushy, etc.)")
+
+    parser.add_argument("--events", nargs="+", help="List of parkrun event names (e.g. eastville, bushy, etc.)", default=["eastville", "ashtoncourt"])
     args = parser.parse_args()
 
     session = requests.Session()
@@ -186,4 +170,5 @@ if __name__ == "__main__":
     session.mount("http://", adapter)
     session.mount("https://", adapter)
 
-    fetch_all_results(args.event)
+    for event in args.events:
+        fetch_all_results(event)

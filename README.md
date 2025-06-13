@@ -38,9 +38,9 @@ We love parkrun! Please be respectful when using this script:
 
 2. Run the script:
    ```bash
-   python parkrun.py <event-name>
+   python parkrun.py [--events EVENT [EVENT ...]]
    ```
-   For example: `python parkrun.py eastville`
+   For example: `python parkrun.py --events ashtoncourt eastville`
 
 3. Results will be saved in `data/json/<event-name>/`
 
