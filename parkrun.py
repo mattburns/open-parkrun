@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import argparse
 import random
+from datetime import datetime, timedelta
 
 # List of common browser user agents
 USER_AGENTS = [
@@ -76,6 +77,9 @@ def fetch_weekly_result(week_number, json_dir, html_dir, event_name):
         print(f"\nWeek {week_number}: No results table found in HTML")
         return None
 
+    event_date_str = soup.find("div", class_="Results-header").find("h3").find("span", class_="format-date").get_text(strip=True)
+    event_date = datetime.strptime(event_date_str, "%d/%m/%Y")
+
     results = []
     rows = table.find_all("tr")[1:]  # skip header
     for row in rows:
@@ -113,11 +117,16 @@ def fetch_weekly_result(week_number, json_dir, html_dir, event_name):
         except Exception:
             continue
 
+    event_data = {
+            "week": week_number,
+            "date": event_date.strftime("%Y-%m-%d"),
+            "results": results
+        }
     # Save compact JSON without whitespace
     with open(filename_json, "w") as f:
-        json.dump({"week": week_number, "results": results}, f, separators=(',', ':'))
+        json.dump(event_data, f, separators=(',', ':'))
 
-    return {"week": week_number, "results": results}
+    return event_data
 
 def get_value_from_row(row, class_name):
     tag = row.find("td", class_=f"Results-table-td--{class_name}")
@@ -150,6 +159,11 @@ def fetch_all_results(event_name):
             fetched += 1
             week += 1
             consecutive_failures = 0
+            # check if the event_date is within the last 7 days, if so, no point attempting to fetch any more
+            event_date = datetime.strptime(week_data["date"], "%Y-%m-%d")
+            if event_date > (datetime.now() - timedelta(days=7)):
+                print(f"\nEEE Completed! {fetched} weeks of results saved to {json_dir}")
+                break
         else:
             consecutive_failures += 1
             if consecutive_failures >= max_consecutive_failures:
